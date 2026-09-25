@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { BellRing, Globe, House, PartyPopper } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -34,6 +35,18 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { user, openLogin } = useAuth();
   const mode = headerMode(pathname);
+  const ref = useRef<HTMLElement>(null);
+
+  // Publish the header's live height so sticky bars below it (category bar, filters) sit flush under it.
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      document.documentElement.style.setProperty("--header-h", `${Math.round(entry.borderBoxSize[0].blockSize)}px`);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   const homesActive = pathname === "/" || pathname.startsWith("/s/") || pathname.startsWith("/rooms");
 
   const hostLink =
@@ -44,7 +57,7 @@ export function SiteHeader() {
         : { href: "/hosting/listings/new", label: "Become a host" };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-white">
+    <header ref={ref} className="sticky top-0 z-40 border-b border-line bg-white">
       <div className="mx-auto hidden max-w-[1880px] px-6 md:block lg:px-10 xl:px-20">
         <div className="grid h-20 grid-cols-[1fr_auto_1fr] items-center gap-4">
           <Logo href={mode === "host" ? "/hosting" : "/"} />
