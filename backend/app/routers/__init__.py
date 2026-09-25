@@ -1,3 +1,3 @@
-from app.routers import health
+from app.routers import auth, health
 
-ROUTERS = [health.router]
+ROUTERS = [health.router, auth.router]

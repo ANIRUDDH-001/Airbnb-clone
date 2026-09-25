@@ -33,3 +33,12 @@ def db(app):
 def client(app):
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def login(client):
+    def _login(user) -> None:
+        response = client.post("/api/auth/login", json={"email": user.email})
+        assert response.status_code == 200, response.text
+
+    return _login
