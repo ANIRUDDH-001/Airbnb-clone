@@ -2,7 +2,6 @@
 
 import { Menu } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -12,11 +11,8 @@ type Item = { label: string; href?: string; onSelect?: () => void; bold?: boolea
 
 export function UserMenu() {
   const { user, openLogin, logout } = useAuth();
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -72,7 +68,7 @@ export function UserMenu() {
             item === "divider" ? (
               <div key={`d${index}`} className="my-2 h-px bg-line" />
             ) : item.href ? (
-              <Link key={item.label} href={item.href} role="menuitem"
+              <Link key={item.label} href={item.href} role="menuitem" onClick={() => setOpen(false)}
                     className={`block px-4 py-3 text-sm hover:bg-soft ${item.bold ? "font-semibold" : ""}`}>
                 {item.label}
               </Link>
