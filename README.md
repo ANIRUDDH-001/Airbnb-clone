@@ -9,7 +9,7 @@ A full-stack Airbnb-style stays marketplace. Guests search, filter, save, book, 
 | **Database** | SQLite, with foreign keys, CHECK constraints and an overlap trigger |
 | **Live demo** | Frontend: [anbindia.vercel.app](https://anbindia.vercel.app/) · API docs: [airbnb-clone-api-529x.onrender.com/docs](https://airbnb-clone-api-529x.onrender.com/docs) |
 
-> The backend runs on Render's free plan and sleeps when idle, so the first request after a quiet spell can take up to a minute. If a page shows "Something went wrong", click **Try again**.
+> The backend runs on Render's free plan, which sleeps when idle. A scheduled GitHub Action pings it every 10 minutes to keep it awake. If it has still gone to sleep, the first request can take up to a minute; if a page shows "Something went wrong", click **Try again**.
 
 ---
 
@@ -70,6 +70,7 @@ flowchart LR
     B -- "/api/* (same origin)" --> N
     N -- "rewrite /api/* + server-side fetches<br/>(forwards the session cookie)" --> F["FastAPI on Render<br/>routers → services → models"]
     F --> D[("SQLite<br/>app.db")]
+    D -. "Litestream: restore on boot,<br/>stream every write" .-> S[("Backblaze B2<br/>bucket")]
 ```
 
 - **Same-origin API.** The browser only ever calls `/api/*` on the Vercel domain, and Next.js rewrites those calls to FastAPI. The session cookie is therefore first-party (`HttpOnly`, `SameSite=Lax`, `Secure` in production), with no CORS setup and no third-party-cookie problems.
@@ -265,14 +266,22 @@ cd frontend && npm run lint && npm run typecheck && npm run build
 
 ## Deployment (both on free plans)
 
+**Durable SQLite storage (Backblaze B2, free).** Render's free plan has no persistent disk, so [Litestream](https://litestream.io) keeps the SQLite file in object storage:
+1. In Backblaze, create a **private** B2 bucket and an application key limited to that bucket.
+2. Note the bucket's S3 endpoint (for example `https://s3.us-east-005.backblazeb2.com`) and its region (`us-east-005`).
+
 **Backend on Render.** The repo includes a Blueprint (`render.yaml`).
 1. Go to Render → **New → Blueprint** and select this repository.
 2. It creates the web service `airbnb-clone-api`:
    - Root directory: `backend/`
-   - Start command: `uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT`
+   - Build command: `pip install -r requirements.txt && sh scripts/install-litestream.sh`
+   - Start command: `sh scripts/start.sh`
    - Health check: `/api/health`
    - `SESSION_SECRET` is generated, and `COOKIE_SECURE=true`.
-3. Check that `https://<service>.onrender.com/api/health` returns `{"status":"ok"}`.
+3. Fill in `LITESTREAM_BUCKET`, `LITESTREAM_ENDPOINT`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID` and `LITESTREAM_SECRET_ACCESS_KEY`. If the service was created by hand rather than from the Blueprint, also set the build and start commands above in its settings.
+4. Check that `https://<service>.onrender.com/api/health` returns `{"status":"ok"}`.
+
+On boot, `scripts/start.sh` restores the database from the bucket (or seeds a fresh one on the very first boot), then runs the API under `litestream replicate`, which ships each write to the bucket within about a second. Without `LITESTREAM_BUCKET`, it simply starts the API on the local file.
 
 **Frontend on Vercel.**
 1. **Add New → Project**, then import this repository.
@@ -287,7 +296,7 @@ cd frontend && npm run lint && npm run typecheck && npm run build
 - **Mocked auth.** Logging in takes only an email, and there are no passwords. The session is a signed, HttpOnly cookie that lasts 7 days.
 - **Mocked payments.** "Confirm and pay" creates a confirmed booking straight away. No card details are collected.
 - **Photos are external URLs.** Seed photos are curated Unsplash images, and hosts pick demo photos or paste image URLs. There are no uploads or cloud storage.
-- **Free-tier persistence.** Render's free plan has no persistent disk. The SQLite file is reset whenever the service restarts or redeploys, and the app re-seeds itself on startup. Demo data therefore always comes back, but bookings or listings created on the live site are temporary. For real persistence, point `DATABASE_URL` at a file on a persistent disk. Moving to a hosted PostgreSQL database also needs the overlap trigger ported, because it is written in SQLite's trigger syntax.
+- **Free-tier persistence.** The database is SQLite, as the brief asks. Render's free plan has no persistent disk, so Litestream streams the SQLite file to a free Backblaze B2 bucket and restores it on every boot. Bookings and listings created on the live site survive restarts, sleeps and redeploys. The worst case is losing about the last second of writes if the instance dies abruptly.
 - **Single currency (INR).** Prices are whole rupees. Taxes are a flat mocked 12%.
 - **Instant booking only.** There is no host approval step and no messaging. Experiences, Services and Messages show "coming soon" pages.
 - **Cancellation is free before check-in.** It's allowed until the day before check-in. There are no refund rules, because payment is mocked.

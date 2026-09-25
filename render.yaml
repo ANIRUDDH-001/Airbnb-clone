@@ -7,8 +7,8 @@ services:
     plan: free
     region: singapore # closest free region to India
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt && sh scripts/install-litestream.sh
+    startCommand: sh scripts/start.sh
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
@@ -19,7 +19,18 @@ services:
       # The cookie only ever travels over HTTPS (browser → Vercel → Render).
       - key: COOKIE_SECURE
         value: "true"
-      # The free plan has no persistent disk: the SQLite file lives on the instance and is
-      # re-seeded automatically whenever the service starts with an empty database.
+      # The free plan has no persistent disk, so Litestream keeps the SQLite file in a Backblaze B2
+      # bucket (free tier) and restores it on every boot. The database is seeded only when neither
+      # the disk nor the bucket has one yet. Fill these in on the Render dashboard.
       - key: SEED_ON_STARTUP
         value: "true"
+      - key: LITESTREAM_BUCKET
+        sync: false
+      - key: LITESTREAM_ENDPOINT # e.g. https://s3.us-east-005.backblazeb2.com
+        sync: false
+      - key: LITESTREAM_REGION # e.g. us-east-005
+        sync: false
+      - key: LITESTREAM_ACCESS_KEY_ID # B2 application key ID
+        sync: false
+      - key: LITESTREAM_SECRET_ACCESS_KEY # B2 application key
+        sync: false

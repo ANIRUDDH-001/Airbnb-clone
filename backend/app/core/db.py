@@ -18,10 +18,14 @@ def make_engine(url: str) -> Engine:
     engine = create_engine(url, connect_args={"check_same_thread": False})
 
     @event.listens_for(engine, "connect")
-    def _enable_foreign_keys(dbapi_connection, _connection_record) -> None:
-        # SQLite ignores foreign keys unless this is set on every connection.
+    def _configure_sqlite(dbapi_connection, _connection_record) -> None:
         cursor = dbapi_connection.cursor()
+        # SQLite ignores foreign keys unless this is set on every connection.
         cursor.execute("PRAGMA foreign_keys=ON")
+        # WAL lets readers and the writer work side by side, and is what Litestream replicates from.
+        cursor.execute("PRAGMA journal_mode=WAL")
+        # Wait for a lock instead of failing at once; Litestream briefly holds one while checkpointing.
+        cursor.execute("PRAGMA busy_timeout=5000")
         cursor.close()
 
     return engine

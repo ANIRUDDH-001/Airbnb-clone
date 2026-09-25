@@ -1,0 +1,13 @@
+# Litestream streams every change to the SQLite file to S3-compatible object storage
+# (Backblaze B2's free tier) and restores it on boot, so data outlives Render's ephemeral disk.
+# Values come from the environment; scripts/start.sh only uses this file when LITESTREAM_BUCKET is set.
+dbs:
+  - path: ${DB_PATH}
+    replicas:
+      - type: s3
+        bucket: ${LITESTREAM_BUCKET}
+        path: app.db
+        endpoint: ${LITESTREAM_ENDPOINT}
+        region: ${LITESTREAM_REGION}
+        access-key-id: ${LITESTREAM_ACCESS_KEY_ID}
+        secret-access-key: ${LITESTREAM_SECRET_ACCESS_KEY}
