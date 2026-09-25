@@ -7,8 +7,11 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.errors import AppError, not_found
 from app.models import Amenity, Booking, Category, Listing, User, WishlistItem, listing_amenities
 from app.schemas.common import Page
-from app.schemas.listing import ListingCard, ListingSearchParams, StayPrice
+from app.schemas.listing import (
+    AmenityOut, CategoryOut, HostSummary, ListingCard, ListingDetail, ListingSearchParams, StayPrice,
+)
 from app.services.pricing import quote
+from app.services.reviews import rating_breakdown
 from app.services.stay import overlaps, validate_stay
 
 GUEST_FAVOURITE_MIN_RATING = 4.8
@@ -132,4 +135,34 @@ def search_listings(db: Session, params: ListingSearchParams, today: date, viewe
     return Page[ListingCard](
         items=cards_for(db, rows, viewer, stay), page=params.page, page_size=params.page_size,
         total=total, has_more=params.page * params.page_size < total,
+    )
+
+
+def _host_summary(db: Session, host: User) -> HostSummary:
+    listing_count, review_count, weighted = db.execute(
+        select(func.count(Listing.id), func.coalesce(func.sum(Listing.review_count), 0),
+               func.sum(Listing.rating_avg * Listing.review_count))
+        .where(Listing.host_id == host.id, Listing.deleted_at.is_(None))
+    ).one()
+    return HostSummary(
+        id=host.id, name=host.name, avatar_url=host.avatar_url, bio=host.bio, is_superhost=host.is_superhost,
+        hosting_since=host.created_at.date(), listing_count=listing_count, review_count=review_count,
+        rating_avg=round(weighted / review_count, 2) if review_count else None,
+    )
+
+
+def get_listing_detail(db: Session, listing_id: int, viewer: User | None) -> ListingDetail:
+    listing = get_active_listing(db, listing_id)
+    return ListingDetail(
+        id=listing.id, title=listing.title, description=listing.description, property_type=listing.property_type,
+        room_type=listing.room_type, max_guests=listing.max_guests, bedrooms=listing.bedrooms, beds=listing.beds,
+        bathrooms=listing.bathrooms, nightly_price=listing.nightly_price, cleaning_fee=listing.cleaning_fee,
+        address=listing.address, city=listing.city, state=listing.state, country=listing.country,
+        latitude=listing.latitude, longitude=listing.longitude, rating_avg=listing.rating_avg,
+        review_count=listing.review_count, is_guest_favourite=is_guest_favourite(listing),
+        photos=[photo.url for photo in listing.photos],
+        amenities=[AmenityOut.model_validate(a) for a in sorted(listing.amenities, key=lambda a: (a.group_name, a.name))],
+        categories=[CategoryOut.model_validate(c) for c in listing.categories],
+        host=_host_summary(db, listing.host), rating_breakdown=rating_breakdown(db, listing.id),
+        is_wishlisted=listing.id in wishlisted_ids(db, viewer, [listing.id]),
     )

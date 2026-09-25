@@ -11,3 +11,25 @@ class StayIn(BaseModel):
     adults: int = Field(default=1, ge=1, le=16)
     children: int = Field(default=0, ge=0, le=15)
     infants: int = Field(default=0, ge=0, le=5)
+
+
+class PriceQuoteOut(BaseModel):
+    nightly_price: int
+    nights: int
+    subtotal: int
+    cleaning_fee: int
+    service_fee: int
+    taxes: int
+    total: int
+
+
+class DateRange(BaseModel):
+    check_in: date
+    check_out: date
+
+
+class AvailabilityOut(BaseModel):
+    listing_id: int
+    start: date
+    end: date
+    booked: list[DateRange]

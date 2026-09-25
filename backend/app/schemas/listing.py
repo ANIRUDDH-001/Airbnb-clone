@@ -79,3 +79,53 @@ class ListingSearchParams(BaseModel):
     sort: SortOption = "recommended"
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=24, ge=1, le=60)
+
+
+class HostSummary(BaseModel):
+    id: int
+    name: str
+    avatar_url: str | None
+    bio: str | None
+    is_superhost: bool
+    hosting_since: date
+    listing_count: int
+    review_count: int
+    rating_avg: float | None
+
+
+class RatingBreakdown(BaseModel):
+    cleanliness: float
+    accuracy: float
+    check_in: float
+    communication: float
+    location: float
+    value: float
+
+
+class ListingDetail(BaseModel):
+    id: int
+    title: str
+    description: str
+    property_type: str
+    room_type: str
+    max_guests: int
+    bedrooms: int
+    beds: int
+    bathrooms: int
+    nightly_price: int
+    cleaning_fee: int
+    address: str
+    city: str
+    state: str | None
+    country: str
+    latitude: float
+    longitude: float
+    rating_avg: float | None
+    review_count: int
+    is_guest_favourite: bool
+    photos: list[str]
+    amenities: list[AmenityOut]
+    categories: list[CategoryOut]
+    host: HostSummary
+    rating_breakdown: RatingBreakdown | None
+    is_wishlisted: bool
