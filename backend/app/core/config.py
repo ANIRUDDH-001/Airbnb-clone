@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./data/app.db"
     session_secret: str = "dev-only-change-me"
     cookie_secure: bool = False
-    seed_on_startup: bool = False  # switched on in Task 13 once the seed exists
+    seed_on_startup: bool = True
 
 
 @lru_cache
