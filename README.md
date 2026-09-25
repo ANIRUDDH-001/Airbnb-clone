@@ -7,7 +7,7 @@ A full-stack Airbnb-style stays marketplace. Guests search, filter, save, book, 
 | **Frontend** | Next.js 16 (App Router, React 19, TypeScript, Tailwind CSS 4), on Vercel |
 | **Backend** | FastAPI + SQLAlchemy 2 + Pydantic 2, on Render |
 | **Database** | SQLite, with foreign keys, CHECK constraints and an overlap trigger |
-| **Live demo** | Frontend: `<your-vercel-url>` · API docs: `<your-render-url>/docs` |
+| **Live demo** | Frontend: [anbindia.vercel.app](https://anbindia.vercel.app/) · API docs: [airbnb-clone-api-529x.onrender.com/docs](https://airbnb-clone-api-529x.onrender.com/docs) |
 
 > The backend runs on Render's free plan and sleeps when idle, so the first request after a quiet spell can take up to a minute. If a page shows "Something went wrong", click **Try again**.
 
@@ -287,7 +287,7 @@ cd frontend && npm run lint && npm run typecheck && npm run build
 - **Mocked auth.** Logging in takes only an email, and there are no passwords. The session is a signed, HttpOnly cookie that lasts 7 days.
 - **Mocked payments.** "Confirm and pay" creates a confirmed booking straight away. No card details are collected.
 - **Photos are external URLs.** Seed photos are curated Unsplash images, and hosts pick demo photos or paste image URLs. There are no uploads or cloud storage.
-- **Free-tier persistence.** Render's free plan has no persistent disk. The SQLite file is reset whenever the service restarts or redeploys, and the app re-seeds itself on startup. Demo data therefore always comes back, but bookings or listings created on the live site are temporary. For real persistence, point `DATABASE_URL` at a persistent disk or a hosted database; no code changes are needed.
+- **Free-tier persistence.** Render's free plan has no persistent disk. The SQLite file is reset whenever the service restarts or redeploys, and the app re-seeds itself on startup. Demo data therefore always comes back, but bookings or listings created on the live site are temporary. For real persistence, point `DATABASE_URL` at a file on a persistent disk. Moving to a hosted PostgreSQL database also needs the overlap trigger ported, because it is written in SQLite's trigger syntax.
 - **Single currency (INR).** Prices are whole rupees. Taxes are a flat mocked 12%.
 - **Instant booking only.** There is no host approval step and no messaging. Experiences, Services and Messages show "coming soon" pages.
 - **Cancellation is free before check-in.** It's allowed until the day before check-in. There are no refund rules, because payment is mocked.

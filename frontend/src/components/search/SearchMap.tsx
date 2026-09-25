@@ -9,10 +9,8 @@ import { useEffect, useRef, useState } from "react";
 
 import type { ListingCard as Card } from "@/lib/api/types";
 import { cardHeading, formatINR, formatRating, plural, sizedPhoto } from "@/lib/format";
+import { addBaseLayer } from "@/lib/map";
 
-// OpenStreetMap's standard tiles: free and keyless for light use with attribution. globals.css mutes them so the pins stand out.
-const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const INDIA: LatLngTuple = [22.5, 79];
 
 type Leaflet = typeof import("leaflet");
@@ -44,9 +42,8 @@ export function SearchMap({ listings, linkQuery, hoveredId }: SearchMapProps) {
       const container = containerRef.current;
       if (cancelled || !container) return;
       const map = L.map(container, { zoomControl: false, center: INDIA, zoom: 4 });
-      map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
       L.control.zoom({ position: "topright" }).addTo(map);
-      L.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 19 }).addTo(map);
+      addBaseLayer(L, map);
       map.on("click", () => setSelectedId(null));
       // The layout resizes the map, and on phones it starts hidden (0×0), so framing the pins has to wait until it shows.
       let hidden = container.clientHeight === 0;

@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { AmenitiesSection } from "@/components/listing/detail/AmenitiesSection";
 import { AvailabilitySection } from "@/components/listing/detail/AvailabilitySection";
 import { Description } from "@/components/listing/detail/Description";
+import { ListingMap } from "@/components/listing/detail/ListingMap";
 import { MobileReserveBar } from "@/components/listing/detail/MobileReserveBar";
 import { PhotoMosaic } from "@/components/listing/detail/PhotoMosaic";
 import { ReserveCard } from "@/components/listing/detail/ReserveCard";
@@ -124,12 +125,7 @@ export default async function ListingPage(props: PageProps<"/rooms/[id]">) {
 
         <section className="border-b border-line py-12">
           <h2 className="mb-6 text-[22px] font-semibold">Where you&apos;ll be</h2>
-          <iframe
-            title={`Map of ${place}`}
-            src={osmEmbed(listing.latitude, listing.longitude)}
-            loading="lazy"
-            className="h-[360px] w-full rounded-xl border-0 md:h-[480px]"
-          />
+          <ListingMap latitude={listing.latitude} longitude={listing.longitude} label={place} />
           <p className="mt-6 font-semibold">{place}</p>
           <p className="mt-1 text-sm text-muted">Exact location provided after booking.</p>
         </section>
@@ -221,11 +217,4 @@ function Stat({ value, label }: { value: string; label: string }) {
       <dd className="text-[22px] font-bold leading-6">{value}</dd>
     </div>
   );
-}
-
-/** OpenStreetMap's embeddable map (no API key, no library), centred on the listing with a marker. */
-function osmEmbed(lat: number, lon: number): string {
-  const d = 0.03;
-  const bbox = [lon - d, lat - d * 0.7, lon + d, lat + d * 0.7].map((n) => n.toFixed(5)).join(",");
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
 }
