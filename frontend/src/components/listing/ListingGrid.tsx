@@ -7,10 +7,8 @@ import { api, ApiError } from "@/lib/api/client";
 import type { Query } from "@/lib/api/core";
 import type { ListingCard as Card, Page } from "@/lib/api/types";
 
+import { GRID_CLASSES } from "./grid";
 import { ListingCard } from "./ListingCard";
-
-export const GRID_CLASSES =
-  "grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[1880px]:grid-cols-6";
 
 interface ListingGridProps {
   initial: Page<Card>;
