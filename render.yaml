@@ -1,0 +1,25 @@
+# Render Blueprint for the FastAPI backend (Dashboard → New → Blueprint → pick this repo).
+# The frontend deploys separately on Vercel with its root directory set to `frontend/`.
+services:
+  - type: web
+    name: airbnb-clone-api
+    runtime: python
+    plan: free
+    region: singapore # closest free region to India
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Signs the session cookie. Render generates a random value once and keeps it across deploys.
+      - key: SESSION_SECRET
+        generateValue: true
+      # The cookie only ever travels over HTTPS (browser → Vercel → Render).
+      - key: COOKIE_SECURE
+        value: "true"
+      # The free plan has no persistent disk: the SQLite file lives on the instance and is
+      # re-seeded automatically whenever the service starts with an empty database.
+      - key: SEED_ON_STARTUP
+        value: "true"
