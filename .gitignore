@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+backend/data/
+backend/.env
+node_modules/
+.next/
+frontend/.env*.local
+.DS_Store
+Thumbs.db
+~$*.docx
+.superpowers/
