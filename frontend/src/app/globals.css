@@ -50,3 +50,50 @@ body {
     transform: none;
   }
 }
+
+/* Date-range calendar (components/calendar/RangeCalendar.tsx), styled like the live site. */
+.rdp-airbnb .rdp-cell {
+  height: 48px;
+  position: relative;
+}
+.rdp-airbnb .rdp-day {
+  cursor: pointer;
+  transition: box-shadow 120ms;
+}
+.rdp-airbnb .rdp-cell:not(.rdp-disabled) .rdp-day:hover {
+  box-shadow: inset 0 0 0 1.5px var(--color-ink);
+}
+.rdp-airbnb .rdp-disabled .rdp-day {
+  color: #b0b0b0;
+  text-decoration: line-through;
+  cursor: default;
+}
+.rdp-airbnb .rdp-middle {
+  background: var(--color-soft);
+}
+.rdp-airbnb .rdp-middle .rdp-day {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.rdp-airbnb .rdp-start.rdp-banded {
+  background: linear-gradient(to right, transparent 50%, var(--color-soft) 50%);
+}
+.rdp-airbnb .rdp-end.rdp-banded {
+  background: linear-gradient(to left, transparent 50%, var(--color-soft) 50%);
+}
+.rdp-airbnb .rdp-start .rdp-day,
+.rdp-airbnb .rdp-end .rdp-day {
+  background: var(--color-ink);
+  color: #fff;
+  text-decoration: none;
+}
+/* While previewing a check-out on hover, the band is lighter and the end circle is outlined, not filled. */
+.rdp-airbnb .rdp-preview.rdp-middle,
+.rdp-airbnb .rdp-preview.rdp-end.rdp-banded {
+  background: #fafafa;
+}
+.rdp-airbnb .rdp-preview.rdp-end .rdp-day {
+  background: #fff;
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 1.5px var(--color-ink);
+}
