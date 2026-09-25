@@ -1,7 +1,8 @@
-from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, Field
+
+from app.schemas.common import UtcDateTime
 
 
 class ReviewOut(BaseModel):
@@ -10,7 +11,7 @@ class ReviewOut(BaseModel):
     author_avatar_url: str | None
     rating: int
     comment: str
-    created_at: datetime
+    created_at: UtcDateTime
 
 
 Stars = Annotated[int, Field(ge=1, le=5)]

@@ -11,3 +11,4 @@ frontend/.env*.local
 Thumbs.db
 ~$*.docx
 .superpowers/
+.claude/

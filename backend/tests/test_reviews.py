@@ -63,3 +63,9 @@ def test_cannot_review_someone_elses_stay(client, db, stay, login):
 def test_rating_must_be_one_to_five(client, stay):
     response = client.post(f"/api/bookings/{stay['past'].id}/review", json={**REVIEW, "rating": 6})
     assert response.status_code == 422
+
+
+def test_timestamps_are_serialised_as_utc(client, stay):
+    review = client.post(f"/api/bookings/{stay['past'].id}/review", json=REVIEW).json()
+    trip = client.get(f"/api/bookings/{stay['past'].id}").json()
+    assert review["created_at"].endswith("Z") and trip["created_at"].endswith("Z")

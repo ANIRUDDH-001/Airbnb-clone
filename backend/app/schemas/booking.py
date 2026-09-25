@@ -1,8 +1,9 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.common import UtcDateTime
 from app.schemas.user import PersonSummary
 
 BookingPhase = Literal["upcoming", "past", "cancelled"]
@@ -73,8 +74,8 @@ class BookingOut(BaseModel):
     service_fee: int
     taxes: int
     total: int
-    created_at: datetime
-    cancelled_at: datetime | None
+    created_at: UtcDateTime
+    cancelled_at: UtcDateTime | None
     listing: BookingListing
     guest: PersonSummary
     can_cancel: bool
