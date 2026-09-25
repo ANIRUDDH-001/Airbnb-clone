@@ -1,3 +1,3 @@
-from app.routers import auth, health
+from app.routers import auth, catalog, health, listings
 
-ROUTERS = [health.router, auth.router]
+ROUTERS = [health.router, auth.router, catalog.router, listings.router]
