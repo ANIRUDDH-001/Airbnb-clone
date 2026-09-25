@@ -69,8 +69,9 @@ def delete_listing(db: Session, host: User, listing_id: int, today: date) -> Non
         )
     )
     if upcoming:
+        noun = "reservation" if upcoming == 1 else "reservations"
         raise AppError(409, "has_upcoming_bookings",
-                       f"This listing has {upcoming} upcoming reservation(s). Cancel them before deleting it.")
+                       f"This listing has {upcoming} upcoming {noun}. Cancel them before deleting it.")
     listing.deleted_at = datetime.now(timezone.utc)  # soft delete: past trips keep their listing
     db.execute(delete(WishlistItem).where(WishlistItem.listing_id == listing.id))
     db.commit()
