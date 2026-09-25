@@ -24,10 +24,10 @@ const HOST_TABS = [
   { href: "/hosting/listings", label: "Listings" },
 ];
 
-/** Which header the route gets: the full one with tabs and the big search bar, a compact one, or the host one. */
+/** Which header the route gets: the full one with tabs and the big search bar (home), a compact one, or the host one. */
 function headerMode(pathname: string): "full" | "compact" | "host" {
   if (pathname.startsWith("/hosting")) return "host";
-  if (pathname === "/" || pathname.startsWith("/s/")) return "full";
+  if (pathname === "/") return "full";
   return "compact";
 }
 

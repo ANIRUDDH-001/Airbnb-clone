@@ -12,6 +12,9 @@ export function MobileNav() {
   const pathname = usePathname();
   const { user, openLogin } = useAuth();
 
+  // Listing and checkout pages show their own bottom bar (price + Reserve / Confirm) instead.
+  if (pathname.startsWith("/rooms/") || pathname.startsWith("/book/")) return null;
+
   const tabs = [
     { href: "/", label: "Explore", Icon: Search, active: pathname === "/" || pathname.startsWith("/s/") },
     { href: "/wishlists", label: "Wishlists", Icon: Heart, active: pathname.startsWith("/wishlists") },
