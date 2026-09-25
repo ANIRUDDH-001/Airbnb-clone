@@ -1,7 +1,7 @@
 from datetime import date
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from app.models import PropertyType, RoomType
 
@@ -129,3 +129,36 @@ class ListingDetail(BaseModel):
     host: HostSummary
     rating_breakdown: RatingBreakdown | None
     is_wishlisted: bool
+
+
+PhotoUrl = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^https?://\S+$", max_length=500)]
+
+
+class ListingWrite(BaseModel):
+    """Everything a host edits. PUT replaces all of it, including photos, amenities and categories."""
+
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
+    title: str = Field(min_length=5, max_length=100)
+    description: str = Field(min_length=20, max_length=5000)
+    property_type: PropertyType
+    room_type: RoomType
+    max_guests: int = Field(ge=1, le=16)
+    bedrooms: int = Field(ge=0, le=50)
+    beds: int = Field(ge=1, le=50)
+    bathrooms: int = Field(ge=0, le=50)
+    nightly_price: int = Field(ge=100, le=1_000_000)
+    cleaning_fee: int = Field(default=0, ge=0, le=100_000)
+    address: str = Field(min_length=3, max_length=200)
+    city: str = Field(min_length=1, max_length=80)
+    state: str | None = Field(default=None, max_length=80)
+    country: str = Field(min_length=2, max_length=80)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+    photo_urls: list[PhotoUrl] = Field(min_length=1, max_length=20)
+    amenity_codes: list[str] = Field(default_factory=list, max_length=60)
+    category_slugs: list[str] = Field(default_factory=list, max_length=10)
+
+
+class HostListingOut(ListingCard):
+    upcoming_reservations: int
