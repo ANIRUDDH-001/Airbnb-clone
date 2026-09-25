@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.errors import AppError, not_found
 from app.models import Amenity, Booking, Category, Listing, ListingPhoto, User, WishlistItem
+from app.schemas.booking import BookingOut
 from app.schemas.listing import HostListingOut, ListingDetail, ListingWrite
+from app.services.bookings import BOOKING_LOAD, to_booking_out
 from app.services.listings import cards_for, get_listing_detail
 
 SCALAR_FIELDS = (
@@ -88,3 +90,15 @@ def host_listings(db: Session, host: User, today: date) -> list[HostListingOut]:
     ).all())
     return [HostListingOut(**card.model_dump(), upcoming_reservations=upcoming.get(card.id, 0))
             for card in cards_for(db, rows, host)]
+
+
+def host_reservations(db: Session, host: User, today: date, phase: str | None) -> list[BookingOut]:
+    rows = db.scalars(
+        select(Booking)
+        .join(Listing, Listing.id == Booking.listing_id)
+        .where(Listing.host_id == host.id)  # includes soft-deleted listings: history stays visible
+        .options(*BOOKING_LOAD)
+        .order_by(Booking.check_in, Booking.id)
+    ).all()
+    reservations = [to_booking_out(booking, today, host) for booking in rows]
+    return [r for r in reservations if phase is None or r.phase == phase]

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Response
 from app.core.auth import CurrentUser
 from app.core.clock import Today
 from app.core.db import DbSession
+from app.schemas.booking import BookingOut, BookingPhase
 from app.schemas.listing import HostListingOut, ListingDetail, ListingWrite
 from app.services import host as host_service
 
@@ -28,3 +29,8 @@ def update_listing(listing_id: int, body: ListingWrite, user: CurrentUser, db: D
 def delete_listing(listing_id: int, user: CurrentUser, db: DbSession, today: Today) -> Response:
     host_service.delete_listing(db, user, listing_id, today)
     return Response(status_code=204)
+
+
+@router.get("/reservations", response_model=list[BookingOut])
+def reservations(user: CurrentUser, db: DbSession, today: Today, phase: BookingPhase | None = None):
+    return host_service.host_reservations(db, user, today, phase)
