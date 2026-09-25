@@ -54,6 +54,7 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             autoComplete="email"
+            autoFocus
             placeholder="ananya@example.com"
             className="w-full bg-transparent text-base outline-none"
             aria-invalid={Boolean(error)}
