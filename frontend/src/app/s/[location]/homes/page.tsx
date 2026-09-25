@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { GRID_CLASSES } from "@/components/listing/grid";
+import { SEARCH_GRID_CLASSES } from "@/components/listing/grid";
 import { ListingCard } from "@/components/listing/ListingCard";
 import { Pagination } from "@/components/search/Pagination";
+import { SearchResults } from "@/components/search/SearchResults";
 import { SearchToolbar } from "@/components/search/SearchToolbar";
+import { StickyToolbar } from "@/components/search/StickyToolbar";
 import { ApiError } from "@/lib/api/core";
 import { serverGet } from "@/lib/api/server";
 import type { Amenity, ListingCard as Card, Page } from "@/lib/api/types";
@@ -41,9 +43,9 @@ export default async function SearchPage(props: PageProps<"/s/[location]/homes">
 
   return (
     <div className="mx-auto max-w-[1880px] px-6 lg:px-10 xl:px-20">
-      <div className="sticky top-[var(--header-h,80px)] z-30 -mx-6 bg-white px-6 py-3 lg:-mx-10 lg:px-10 xl:-mx-20 xl:px-20">
+      <StickyToolbar>
         <SearchToolbar search={search} amenities={amenities} openFilters={params.filters === "open"} />
-      </div>
+      </StickyToolbar>
 
       <div className="pb-6 pt-4">
         <h1 className="text-[22px] font-semibold">
@@ -61,21 +63,21 @@ export default async function SearchPage(props: PageProps<"/s/[location]/homes">
           action={{ label: "Clear dates and filters", href: searchHref({ ...search, checkIn: undefined, checkOut: undefined, filters: EMPTY_FILTERS, page: 1 }) }}
         />
       ) : results && results.items.length ? (
-        <>
-          <ul className={GRID_CLASSES}>
+        <SearchResults listings={results.items} linkQuery={linkQuery}>
+          <ul className={SEARCH_GRID_CLASSES}>
             {results.items.map((listing, index) => (
-              <li key={listing.id}>
+              <li key={listing.id} data-listing-id={listing.id}>
                 <ListingCard listing={listing} query={linkQuery} priority={index < 4} />
               </li>
             ))}
           </ul>
-          <div className="mt-14">
+          <div className="mt-14 pb-6">
             <Pagination page={search.page} totalPages={totalPages} hrefFor={(page) => searchHref({ ...search, page })} />
             <p className="mt-4 text-center text-sm text-muted">
               {`${(search.page - 1) * PAGE_SIZE + 1} – ${Math.min(search.page * PAGE_SIZE, results.total)} of ${plural(results.total, "home")}`}
             </p>
           </div>
-        </>
+        </SearchResults>
       ) : (
         <EmptyState
           title="No exact matches"

@@ -4,11 +4,12 @@ import clsx from "clsx";
 import { BellRing, Globe, House, PartyPopper } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { SearchBar } from "@/components/search/SearchBar";
+import { usePublishedHeight } from "@/components/ui/usePublishedHeight";
 
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
@@ -38,15 +39,7 @@ export function SiteHeader() {
   const ref = useRef<HTMLElement>(null);
 
   // Publish the header's live height so sticky bars below it (category bar, filters) sit flush under it.
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => {
-      document.documentElement.style.setProperty("--header-h", `${Math.round(entry.borderBoxSize[0].blockSize)}px`);
-    });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+  usePublishedHeight(ref, "--header-h");
   const homesActive = pathname === "/" || pathname.startsWith("/s/") || pathname.startsWith("/rooms");
 
   const hostLink =
