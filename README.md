@@ -28,6 +28,7 @@ The other seeded users can log in by email too: hosts `priya@`, `arjun@`, `meera
 1. **Home.** Click a category chip (Beachfront, Cabins, …) to filter the grid. Hover a card to page through its photos, then tap ♥ to save it.
 2. **Search.** Open the big search bar and pick *Where*, dates on the two-month calendar, and a guest count. On the results page:
    - Try the quick amenity chips, the sort menu and **Filters**. Filters covers price range, type of place, rooms and beds, property types and amenities, and its "Show N places" count updates live.
+   - The map beside the results shows a price pin for each home. Hovering a card highlights its pin, and clicking a pin opens a preview card. On phones, use **Show map**.
    - The URL holds the whole search, so reloading or sharing it keeps the results.
 3. **Listing page.** You'll see:
    - A photo mosaic with a full photo tour.
@@ -48,6 +49,7 @@ The other seeded users can log in by email too: hosts `priya@`, `arjun@`, `meera
 ## Features
 
 - **Discovery.** Category bar, destination search with suggestions, date range and guest count, and filters for price, room type, property type, bedrooms, beds, bathrooms and amenities. Sorting by recommended, price or rating. Pagination.
+- **Search map.** A Leaflet map with OpenStreetMap tiles, a price pin per result (the stay total once dates are set), hover-linked cards and a preview card on click. It is a sticky panel on large screens and a full-screen toggle on phones.
 - **Availability-aware search.** A listing appears only if it fits the party and is free for the whole stay. Back-to-back stays are allowed: checking out on the 5th doesn't block a check-in on the 5th.
 - **Listing detail.** Photo mosaic and photo tour, description modal, amenities grouped by type, and a two-month availability calendar. Also reviews with a six-category breakdown and a "Guest favourite" badge, an OpenStreetMap embed, the host profile and house rules.
 - **Booking.** A live server-side quote, a checkout page, a mocked payment, and a confirmation page. A stay can be cancelled until the day before check-in.
@@ -290,7 +292,8 @@ cd frontend && npm run lint && npm run typecheck && npm run build
 - **Instant booking only.** There is no host approval step and no messaging. Experiences, Services and Messages show "coming soon" pages.
 - **Cancellation is free before check-in.** It's allowed until the day before check-in. There are no refund rules, because payment is mocked.
 - **Minimal hosting.** Hosts have no per-night pricing or blocked-date management. A listing is available unless it is booked.
-- **Out of scope:** dark mode, real maps with price pins (the listing page uses an OpenStreetMap embed), and real identity or payment providers.
+- **Map tiles** come from OpenStreetMap's free public tile server, which is fine for a low-traffic demo. A production site would use a commercial tile provider.
+- **Out of scope:** dark mode, "search as I move the map", and real identity or payment providers.
 
 ---
 

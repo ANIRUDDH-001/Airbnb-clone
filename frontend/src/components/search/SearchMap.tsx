@@ -30,6 +30,8 @@ export function SearchMap({ listings, linkQuery, hoveredId }: SearchMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const leafletRef = useRef<{ L: Leaflet; map: LeafletMap } | null>(null);
   const markersRef = useRef(new Map<number, Marker>());
+  /** Fits the map to the current pins; kept for when a hidden map is revealed. */
+  const frameRef = useRef(() => {});
   const [ready, setReady] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const selected = listings.find((listing) => listing.id === selectedId) ?? null;
@@ -46,8 +48,14 @@ export function SearchMap({ listings, linkQuery, hoveredId }: SearchMapProps) {
       L.control.zoom({ position: "topright" }).addTo(map);
       L.tileLayer(TILES, { attribution: ATTRIBUTION, maxZoom: 19 }).addTo(map);
       map.on("click", () => setSelectedId(null));
-      // The map is resized by the layout (and shown/hidden on phones); Leaflet has to be told.
-      observer = new ResizeObserver(() => map.invalidateSize());
+      // The layout resizes the map, and on phones it starts hidden (0×0), so framing the pins has to wait until it shows.
+      let hidden = container.clientHeight === 0;
+      observer = new ResizeObserver(() => {
+        map.invalidateSize();
+        const wasHidden = hidden;
+        hidden = container.clientHeight === 0;
+        if (wasHidden && !hidden) frameRef.current();
+      });
       observer.observe(container);
       leafletRef.current = { L, map };
       setReady(true);
@@ -78,14 +86,16 @@ export function SearchMap({ listings, linkQuery, hoveredId }: SearchMapProps) {
         .addTo(map);
       markers.set(listing.id, marker);
     }
-    if (listings.length) {
+    frameRef.current = () => {
+      if (!listings.length || map.getContainer().clientHeight === 0) return;
       // Extra room at the bottom keeps pins clear of the phone "Show list" button.
       map.fitBounds(L.latLngBounds(listings.map((l): LatLngTuple => [l.latitude, l.longitude])), {
         paddingTopLeft: [56, 56],
         paddingBottomRight: [56, 120],
         maxZoom: 13,
       });
-    }
+    };
+    frameRef.current();
     return () => {
       markers.forEach((marker) => marker.remove());
       markers.clear();
