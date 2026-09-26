@@ -9,5 +9,7 @@ dbs:
         path: app.db
         endpoint: ${LITESTREAM_ENDPOINT}
         region: ${LITESTREAM_REGION}
+        # B2 (and local S3 stand-ins) need path-style URLs; Litestream 0.3 doesn't detect B2 by itself.
+        force-path-style: true
         access-key-id: ${LITESTREAM_ACCESS_KEY_ID}
         secret-access-key: ${LITESTREAM_SECRET_ACCESS_KEY}
