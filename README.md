@@ -50,8 +50,9 @@ The other seeded users can log in by email too: hosts `priya@`, `arjun@`, `meera
 
 - **Discovery.** Category bar, destination search with suggestions, date range and guest count, and filters for price, room type, property type, bedrooms, beds, bathrooms and amenities. Sorting by recommended, price or rating. Pagination.
 - **Search map.** A Leaflet map with OpenStreetMap tiles, a price pin per result (the stay total once dates are set), hover-linked cards and a preview card on click. It is a sticky panel on large screens and a full-screen toggle on phones.
+- **India's official boundary on every map.** OpenStreetMap draws India's northern border along the Line of Control. Both maps (search and listing) get their tiles from one function, `frontend/src/lib/map.ts`, which redraws them with India's official boundary using [`india-boundary-corrector`](https://github.com/ramSeraph/india_boundary_corrector). Its 1.6 MB boundary file is served from this site (`/maps/`), copied from the pinned npm package at build time. If it fails to load, the map still shows, uncorrected. It corrects boundary lines only, not place labels.
 - **Availability-aware search.** A listing appears only if it fits the party and is free for the whole stay. Back-to-back stays are allowed: checking out on the 5th doesn't block a check-in on the 5th.
-- **Listing detail.** Photo mosaic and photo tour, description modal, amenities grouped by type, and a two-month availability calendar. Also reviews with a six-category breakdown and a "Guest favourite" badge, an OpenStreetMap embed, the host profile and house rules.
+- **Listing detail.** Photo mosaic and photo tour, description modal, amenities grouped by type, and a two-month availability calendar. Also reviews with a six-category breakdown and a "Guest favourite" badge, a neighbourhood map (the exact address is shared after booking), the host profile and house rules.
 - **Booking.** A live server-side quote, a checkout page, a mocked payment, and a confirmation page. A stay can be cancelled until the day before check-in.
 - **Double-booking prevention** at three levels (see below).
 - **Trips.** Upcoming, Past and Cancelled tabs, trip detail, cancel, and one review per completed stay.
@@ -260,8 +261,18 @@ Backend settings, all optional, are read from env vars or `backend/.env`:
 cd backend && pytest                                           # 117 API/service/model tests
 cd frontend && npm test                                        # date, search-URL and listing-form logic (vitest)
 cd frontend && npm run lint && npm run typecheck && npm run build
+cd frontend && npx playwright install chromium && npm run e2e   # 5 end-to-end browser flows (see below)
 cd backend && sh scripts/install-litestream.sh && bash scripts/litestream-smoke.sh   # Linux/WSL: see below
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs all of these on every push to `main` and on pull requests.
+
+`npm run e2e` (Playwright) builds the frontend and starts it against a real FastAPI server on a fresh, freshly seeded SQLite file. Ports 3001 and 8001 are used, so the dev servers can keep running. It walks five flows in Chromium:
+1. **Book:** search from the home page, open a listing, pick dates on the calendar, log in when Reserve asks, confirm and pay, then find the trip in My Trips.
+2. **Conflict:** the booked nights are struck through on the calendar (the checkout day stays free) and missing from search for those dates, and an overlapping booking gets a 409.
+3. **Wishlist:** a saved heart survives a reload and shows on the wishlist.
+4. **Host:** create a listing through the whole wizard, edit its title and price, then delete it.
+5. **Review:** review a completed stay; the listing's review count and rating update, and the stay can't be reviewed twice.
 
 `litestream-smoke.sh` proves the durable-storage setup end to end against a local S3 server (moto), with no Backblaze account needed:
 1. Boot on an empty bucket and book a stay.
@@ -342,5 +353,8 @@ frontend/
   src/app/       routes: home, /s/[location]/homes, /rooms/[id], /book/[id], /trips, /wishlists, /hosting, …
   src/components/  header & search, listing cards & detail, calendar, booking, trips, host forms, UI primitives
   src/lib/       API clients (browser and server), formatting, date and search-URL helpers, listing-form validation
+  e2e/           Playwright end-to-end flows
+backend/litestream.yml, backend/scripts/   Litestream config, install, start and smoke-test scripts
+.github/workflows/  CI, plus a keep-alive ping for the free Render instance
 render.yaml      Render Blueprint for the backend
 ```
