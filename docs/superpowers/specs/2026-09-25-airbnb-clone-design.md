@@ -278,7 +278,7 @@ Pydantic schemas.
 
 ## 11. Deployment
 - **Render (Free web service):** root `backend/`, Python 3.11, build `pip install -r requirements.txt`, start `uvicorn app.main:create_app --factory --host 0.0.0.0 --port $PORT`, health check `/api/health`, env `SESSION_SECRET`, `COOKIE_SECURE=true`.
-- **Vercel (Hobby):** root `frontend/`, env `BACKEND_URL=https://<render-service>.onrender.com`.
+- **Vercel (Hobby):** root `frontend/`, env `BACKEND_URL=https://airbnb-clone-api-529x.onrender.com`.
 - The GitHub repo must be public, with `frontend/` and `backend/` at the root.
 
 ## 12. Delivery phases

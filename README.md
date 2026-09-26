@@ -302,7 +302,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs all of these on every push to `
    - Health check: `/api/health`
    - `SESSION_SECRET` is generated, and `COOKIE_SECURE=true`.
 3. Fill in `LITESTREAM_BUCKET`, `LITESTREAM_ENDPOINT`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID` and `LITESTREAM_SECRET_ACCESS_KEY`. If the service was created by hand rather than from the Blueprint, also set the build and start commands above in its settings.
-4. Check that `https://<service>.onrender.com/api/health` returns `{"status":"ok"}`.
+4. Check that `https://airbnb-clone-api-529x.onrender.com/api/health` returns `{"status":"ok"}`.
 
 On boot, `scripts/start.sh` restores the database from the bucket, then runs the API under `litestream replicate`, which ships each write to the bucket within about a second.
 - **The very first boot**, with an empty bucket, seeds the demo data, which is then replicated.
@@ -314,7 +314,7 @@ On boot, `scripts/start.sh` restores the database from the bucket, then runs the
 **Frontend on Vercel.**
 1. **Add New → Project**, then import this repository.
 2. Set **Root Directory** to `frontend`. Next.js is detected automatically.
-3. Add the environment variable `BACKEND_URL=https://<service>.onrender.com`, with no trailing slash.
+3. Add the environment variable `BACKEND_URL=https://airbnb-clone-api-529x.onrender.com`, with no trailing slash.
 4. Deploy. The `/api` rewrite reads `BACKEND_URL` at build time, so **redeploy after changing it**.
 
 ---
