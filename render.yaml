@@ -22,6 +22,8 @@ services:
       # The free plan has no persistent disk, so Litestream keeps the SQLite file in a Backblaze B2
       # bucket (free tier) and restores it on every boot. The database is seeded only when neither
       # the disk nor the bucket has one yet. Fill these in on the Render dashboard.
+      # Rollback: delete LITESTREAM_BUCKET and redeploy; the API then runs on a local, re-seeded file.
+      # Use a bucket-restricted key (the master key doesn't work with B2's S3 API).
       - key: SEED_ON_STARTUP
         value: "true"
       - key: LITESTREAM_BUCKET

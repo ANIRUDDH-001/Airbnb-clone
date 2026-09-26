@@ -260,15 +260,27 @@ Backend settings, all optional, are read from env vars or `backend/.env`:
 cd backend && pytest                                           # 117 API/service/model tests
 cd frontend && npm test                                        # date, search-URL and listing-form logic (vitest)
 cd frontend && npm run lint && npm run typecheck && npm run build
+cd backend && sh scripts/install-litestream.sh && bash scripts/litestream-smoke.sh   # Linux/WSL: see below
 ```
+
+`litestream-smoke.sh` proves the durable-storage setup end to end against a local S3 server (moto), with no Backblaze account needed:
+1. Boot on an empty bucket and book a stay.
+2. Stop at once, wipe the disk, and boot again: the booking and its blocked dates must come back.
+3. Book again and repeat, so the restore picks up the newer copy.
+4. Finally, a boot with a missing bucket must refuse to start rather than seed a fresh database.
 
 ---
 
 ## Deployment (both on free plans)
 
 **Durable SQLite storage (Backblaze B2, free).** Render's free plan has no persistent disk, so [Litestream](https://litestream.io) keeps the SQLite file in object storage:
-1. In Backblaze, create a **private** B2 bucket and an application key limited to that bucket.
-2. Note the bucket's S3 endpoint (for example `https://s3.us-east-005.backblazeb2.com`) and its region (`us-east-005`).
+1. In Backblaze, create a **private** B2 bucket. Under *Lifecycle Settings*, choose **Keep only the last version**: Litestream's files never change, and it deletes old ones itself.
+2. Under *Application Keys*, **Add a New Application Key**:
+   - Restrict it to that bucket, with **Read and Write** access.
+   - Tick **Allow List All Bucket Names**.
+
+   The account's *Master Application Key* does **not** work with B2's S3-compatible API. The secret is shown only once, so copy it straight into Render.
+3. Note the bucket's S3 endpoint (for example `https://s3.us-east-005.backblazeb2.com`) and its region (`us-east-005`).
 
 **Backend on Render.** The repo includes a Blueprint (`render.yaml`).
 1. Go to Render → **New → Blueprint** and select this repository.
@@ -281,7 +293,12 @@ cd frontend && npm run lint && npm run typecheck && npm run build
 3. Fill in `LITESTREAM_BUCKET`, `LITESTREAM_ENDPOINT`, `LITESTREAM_REGION`, `LITESTREAM_ACCESS_KEY_ID` and `LITESTREAM_SECRET_ACCESS_KEY`. If the service was created by hand rather than from the Blueprint, also set the build and start commands above in its settings.
 4. Check that `https://<service>.onrender.com/api/health` returns `{"status":"ok"}`.
 
-On boot, `scripts/start.sh` restores the database from the bucket (or seeds a fresh one on the very first boot), then runs the API under `litestream replicate`, which ships each write to the bucket within about a second. Without `LITESTREAM_BUCKET`, it simply starts the API on the local file.
+On boot, `scripts/start.sh` restores the database from the bucket, then runs the API under `litestream replicate`, which ships each write to the bucket within about a second.
+- **The very first boot**, with an empty bucket, seeds the demo data, which is then replicated.
+- **If the restore fails** (wrong keys, bucket unreachable), the script exits and the deploy fails, so Render keeps the previous instance running. It never falls back to a fresh database: that would replicate as the newest copy and hide the real data from every later restore.
+- **Without `LITESTREAM_BUCKET`**, it simply starts the API on the local file.
+
+**Rollback.** Remove `LITESTREAM_BUCKET` in Render and the next deploy runs exactly as before Litestream: a local file, re-seeded on each start. To go back further, use Render's **Rollback** to an earlier deploy. Nothing in the app ever deletes objects in the bucket (restoring only reads), so the replica stays intact through either rollback.
 
 **Frontend on Vercel.**
 1. **Add New → Project**, then import this repository.
@@ -296,7 +313,10 @@ On boot, `scripts/start.sh` restores the database from the bucket (or seeds a fr
 - **Mocked auth.** Logging in takes only an email, and there are no passwords. The session is a signed, HttpOnly cookie that lasts 7 days.
 - **Mocked payments.** "Confirm and pay" creates a confirmed booking straight away. No card details are collected.
 - **Photos are external URLs.** Seed photos are curated Unsplash images, and hosts pick demo photos or paste image URLs. There are no uploads or cloud storage.
-- **Free-tier persistence.** The database is SQLite, as the brief asks. Render's free plan has no persistent disk, so Litestream streams the SQLite file to a free Backblaze B2 bucket and restores it on every boot. Bookings and listings created on the live site survive restarts, sleeps and redeploys. The worst case is losing about the last second of writes if the instance dies abruptly.
+- **Free-tier persistence.** The database is SQLite, as the brief asks. Render's free plan has no persistent disk, so Litestream streams the SQLite file to a free Backblaze B2 bucket and restores it on every boot. Bookings and listings created on the live site survive restarts, sleeps and redeploys. Known limits, acceptable for a demo:
+  - A write made in the second before the instance dies abruptly can be lost. A normal shutdown flushes it.
+  - During a deploy, Render briefly runs the old and new instance side by side, and a write that reaches the old one in those few seconds can be lost. Don't demo during a deploy.
+  - There is one writer (one instance). SQLite plus Litestream doesn't scale out horizontally.
 - **Single currency (INR).** Prices are whole rupees. Taxes are a flat mocked 12%.
 - **Instant booking only.** There is no host approval step and no messaging. Experiences, Services and Messages show "coming soon" pages.
 - **Cancellation is free before check-in.** It's allowed until the day before check-in. There are no refund rules, because payment is mocked.

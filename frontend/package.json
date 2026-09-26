@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copy-map-data.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copy-map-data.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -11,6 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@india-boundary-corrector/data": "0.2.2",
+    "@india-boundary-corrector/leaflet-layer": "0.2.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "leaflet": "^1.9.4",
