@@ -1,4 +1,5 @@
-"""Curated Unsplash photos (Unsplash License). Exterior pools are chosen by destination theme."""
+"""Curated Unsplash photos (Unsplash License). Exterior pools are chosen by destination theme and hold at least
+one photo per listing of that theme, so every listing gets its own cover."""
 
 
 def _u(photo_id: str) -> str:
@@ -15,7 +16,7 @@ EXTERIOR: dict[str, list[str]] = {
         _u("1570793005386-840846445fed"), _u("1475087542963-13ab5e611954"), _u("1551648746-d158bcd704e7"),
         _u("1609349093648-51d2ceb5a72a"), _u("1506974210756-8e1b8985d348"), _u("1605272058466-5988743ff1db"),
         _u("1610195771759-7926c38df364"), _u("1613645540849-548b2696a7db"), _u("1695135210851-5c6628d45100"),
-        _u("1627750168257-9a7d3965ef8b"),
+        _u("1627750168257-9a7d3965ef8b"), _u("1725656676543-41aa2f614373"), _u("1771925183858-88607574e804"),
     ],
     "heritage": [  # havelis, courtyards, palace-style facades
         _u("1629725053305-9bb7886f9545"), _u("1582998451055-5ce52763e246"), _u("1682414181845-a725f154a14a"),
@@ -35,9 +36,9 @@ EXTERIOR: dict[str, list[str]] = {
     ],
     "countryside": [  # plantation bungalows, farmhouses, tea estates
         _u("1596753365498-2d23bbfcbc24"), _u("1720631882065-ec1329796714"), _u("1714402582129-7c363203367e"),
-        _u("1592212671488-700bb9a101e1"), _u("1636917883904-8fbd537feb38"), _u("1725656676543-41aa2f614373"),
+        _u("1592212671488-700bb9a101e1"), _u("1636917883904-8fbd537feb38"),
         _u("1697299261580-876d107bf090"), _u("1713656275767-e8140c59acca"), _u("1719008546743-c6f4f4b3f7bf"),
-        _u("1723321354701-02cdd6ab6192"), _u("1771925183858-88607574e804"), _u("1642333943535-ec91ad40608d"),
+        _u("1723321354701-02cdd6ab6192"), _u("1642333943535-ec91ad40608d"),
     ],
 }
 

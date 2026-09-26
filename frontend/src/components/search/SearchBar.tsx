@@ -16,6 +16,9 @@ import { useDestinations, useSearchDraft } from "./useSearchDraft";
 type Panel = "where" | "checkIn" | "checkOut" | "who" | null;
 
 const shortDate = (value?: string) => (value ? format(parseISO(value), "d MMM") : null);
+/** One "When" segment, as on the live site: "5–10 Oct", or just the check-in while the checkout is still open. */
+const whenLabel = (state: SearchState) =>
+  state.checkIn && state.checkOut ? formatRange(state.checkIn, state.checkOut) : shortDate(state.checkIn);
 const whoLabel = (state: SearchState) => (guestCount(state) + state.infants ? guestsLabel(state) : null);
 
 export function SearchBar({ variant }: { variant: "expanded" | "compact" | "mobile" }) {
@@ -57,6 +60,7 @@ function ExpandedSearch({ initialPanel = null, onDone }: { initialPanel?: Panel;
   }
 
   const active = panel !== null;
+  const datesOpen = panel === "checkIn" || panel === "checkOut";
 
   return (
     <div ref={root} className="relative w-[850px] max-w-full">
@@ -67,7 +71,7 @@ function ExpandedSearch({ initialPanel = null, onDone }: { initialPanel?: Panel;
           go();
         }}
         className={clsx(
-          "grid h-16 grid-cols-[1.4fr_1fr_1fr_1.3fr] items-center rounded-full border border-line shadow-search transition",
+          "grid h-16 grid-cols-[1.3fr_1fr_1.2fr] items-center rounded-full border border-line shadow-search transition",
           active ? "bg-hover" : "bg-white",
         )}
       >
@@ -86,14 +90,9 @@ function ExpandedSearch({ initialPanel = null, onDone }: { initialPanel?: Panel;
           </label>
         </Segment>
 
-        <Segment active={panel === "checkIn"} onActivate={() => setPanel("checkIn")}
-                 clear={panel === "checkIn" && draft.checkIn ? () => update({ checkIn: undefined, checkOut: undefined }) : undefined}>
-          <SegmentText label="Check in" value={shortDate(draft.checkIn)} placeholder="Add dates" />
-        </Segment>
-
-        <Segment active={panel === "checkOut"} onActivate={() => setPanel(draft.checkIn ? "checkOut" : "checkIn")}
-                 clear={panel === "checkOut" && draft.checkOut ? () => update({ checkOut: undefined }) : undefined}>
-          <SegmentText label="Check out" value={shortDate(draft.checkOut)} placeholder="Add dates" />
+        <Segment active={datesOpen} onActivate={() => setPanel(draft.checkIn && !draft.checkOut ? "checkOut" : "checkIn")}
+                 clear={datesOpen && draft.checkIn ? () => update({ checkIn: undefined, checkOut: undefined }) : undefined}>
+          <SegmentText label="When" value={whenLabel(draft)} placeholder="Add dates" />
         </Segment>
 
         <Segment active={panel === "who"} onActivate={() => setPanel("who")} last
@@ -126,7 +125,7 @@ function ExpandedSearch({ initialPanel = null, onDone }: { initialPanel?: Panel;
           />
         </PanelBox>
       )}
-      {(panel === "checkIn" || panel === "checkOut") && (
+      {datesOpen && (
         <PanelBox className="inset-x-0 px-10 py-8">
           <RangeCalendar
             checkIn={draft.checkIn}

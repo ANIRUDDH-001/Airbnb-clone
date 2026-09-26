@@ -258,7 +258,7 @@ Backend settings, all optional, are read from env vars or `backend/.env`:
 ### Tests and checks
 
 ```bash
-cd backend && pytest                                           # 117 API/service/model tests
+cd backend && pytest                                           # 119 API/service/model tests
 cd frontend && npm test                                        # date, search-URL and listing-form logic (vitest)
 cd frontend && npm run lint && npm run typecheck && npm run build
 cd frontend && npx playwright install chromium && npm run e2e   # 5 end-to-end browser flows (see below)

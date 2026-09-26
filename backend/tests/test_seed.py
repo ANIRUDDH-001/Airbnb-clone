@@ -1,7 +1,9 @@
 from sqlalchemy import func, select
 
-from app.models import Booking, Listing, Review, User, WishlistItem
-from app.seed.data import DEMO_GUEST_EMAIL, DEMO_HOST_EMAIL
+from collections import Counter
+
+from app.models import Booking, Listing, ListingPhoto, Review, User, WishlistItem
+from app.seed.data import DEMO_GUEST_EMAIL, DEMO_HOST_EMAIL, DESTINATION_THEMES, LISTINGS
 from app.seed.photos import EXTERIOR, INTERIOR
 from app.seed.run import seed, seed_if_empty
 from app.services.bookings import phase_of
@@ -13,6 +15,17 @@ def test_photo_pools_are_well_formed():
     assert all(u.startswith("https://images.unsplash.com/photo-") for u in urls)
     assert len(urls) == len(set(urls))
     assert all(len(p) >= 6 for p in EXTERIOR.values()) and all(len(p) >= 12 for p in INTERIOR.values())
+
+
+def test_every_theme_has_a_cover_photo_per_listing():
+    needed = Counter(DESTINATION_THEMES[bp.destination] for bp in LISTINGS)
+    assert all(len(EXTERIOR[theme]) >= count for theme, count in needed.items())
+
+
+def test_no_two_listings_share_a_cover_photo(db):
+    seed(db, TODAY)
+    covers = db.scalars(select(ListingPhoto.url).where(ListingPhoto.position == 0)).all()
+    assert len(covers) == 48 and len(set(covers)) == 48
 
 
 def test_seed_builds_a_usable_demo_world(db):

@@ -38,7 +38,9 @@ def seed(db: Session, today: date) -> None:
               for n, e, a in GUESTS]
     db.add_all([*amenities.values(), *categories.values(), *hosts, *guests])
 
-    listings = [_make_listing(rng, i, bp, hosts, amenities, categories, today) for i, bp in enumerate(LISTINGS)]
+    # Covers are dealt from a shuffled deck per theme, so no two listings share one (the grid shows only covers).
+    covers = {theme: rng.sample(pool, len(pool)) for theme, pool in EXTERIOR.items()}
+    listings = [_make_listing(rng, i, bp, hosts, amenities, categories, covers, today) for i, bp in enumerate(LISTINGS)]
     db.add_all(listings)
     db.flush()
 
@@ -56,14 +58,14 @@ def seed(db: Session, today: date) -> None:
     db.commit()
 
 
-def _make_listing(rng, index, bp: Blueprint, hosts, amenities, categories, today) -> Listing:
+def _make_listing(rng, index, bp: Blueprint, hosts, amenities, categories, covers, today) -> Listing:
     destination = next(d for d in DESTINATIONS if d.name == bp.destination)
     theme = DESTINATION_THEMES[bp.destination]
     host = hosts[0] if index in DEMO_HOST_LISTING_INDEXES else hosts[1 + index % (len(hosts) - 1)]
     codes = set(ALWAYS_AMENITIES) | set(THEME_AMENITIES[theme]) | set(rng.sample(OPTIONAL_AMENITIES, rng.randint(2, 5)))
     if "amazing_pools" in bp.categories:
         codes.add("pool")
-    photos = [rng.choice(EXTERIOR[theme]), rng.choice(INTERIOR["living"]), *rng.sample(INTERIOR["bedroom"], 2),
+    photos = [covers[theme].pop(), rng.choice(INTERIOR["living"]), *rng.sample(INTERIOR["bedroom"], 2),
               rng.choice(INTERIOR["bathroom"])]
     listing = Listing(
         host=host, title=bp.title, description=_describe(bp, destination.blurb),
