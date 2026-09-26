@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@india-boundary-corrector/data": "0.2.2",
