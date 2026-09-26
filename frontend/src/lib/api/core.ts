@@ -34,10 +34,17 @@ export async function readResponse<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => null);
   if (!response.ok) {
     const error = body?.error;
+    let message = error?.message ?? "Something went wrong. Please try again.";
+    
+    // 502/503/504 from the proxy often means Render is waking the free instance up.
+    if ([502, 503, 504].includes(response.status)) {
+      message = "The demo server is waking up. This takes about a minute—please try again!";
+    }
+
     throw new ApiError(
       response.status,
       error?.code ?? "http_error",
-      error?.message ?? "Something went wrong. Please try again.",
+      message,
       error?.details,
     );
   }
